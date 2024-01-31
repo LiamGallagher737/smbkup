@@ -53,7 +53,7 @@ enum CliError {
     DeserializingConfig(#[from] toml::de::Error),
     #[error("No backups exist in the config file named {name}")]
     NoBackupExists { name: String },
-    #[error("No server exist in the config file named {name}")]
+    #[error("No share exist in the config file named {name}")]
     NoShareExists { name: String },
     #[error("Something went wrong with smb: {0}")]
     Smb(#[from] pavao::SmbError),

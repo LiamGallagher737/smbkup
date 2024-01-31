@@ -8,7 +8,7 @@ A cli program for backing up local directories to a Samba share
 
 ## Usage
 
-Servers and backups are defined in a `config.toml` file at the following paths.
+Shares and backups are defined in a `config.toml` file at the following paths.
 
 - Linux: `~/.config/smbkup/config.toml`
 - MacOS: `~/Library/Application Support/smbkup/config.toml`
@@ -16,15 +16,15 @@ Servers and backups are defined in a `config.toml` file at the following paths.
 Here's an example config for a single backup of your `.config` directory
 
 ```toml
-[[server]]
-name = "Home Server" # The name of this server to be used when defining backups
-address = "smb://192.168.1.100" # The address of this server which may include a port
+[[share]]
+name = "Home Server" # The name of this share to be used when defining backups
+address = "smb://192.168.1.100" # The address of the server which may include a port
 username = "Joe" # The username to login with, the password will be promted for when running commands
 share = "Backups" # The share on the server to use
 
 [[backup]]
 name = "config" # The name of this backup to be used with the `smbkup backup <name>` command
-server = "Home Server" # The server for this backup to be uploaded to
+share = "Home Server" # The server for this backup to be uploaded to
 source = "/home/joe/.config" # The directory to be backed up
 destination = "/joe/config" # The location of the share to store the backups
 ```
