@@ -1,6 +1,5 @@
-use std::{fs, io, path::PathBuf};
-
-use thiserror::Error;
+use crate::CliError;
+use std::{fs, path::PathBuf};
 
 #[derive(serde::Deserialize)]
 pub struct Config {
@@ -26,24 +25,14 @@ pub struct Server {
     pub share: String,
 }
 
-pub fn load(path: Option<PathBuf>) -> Result<Config, ConfigLoadError> {
+pub fn load(path: Option<PathBuf>) -> Result<Config, CliError> {
     let path = match path {
         Some(path) => path,
         _ => dirs::config_dir()
-            .ok_or(ConfigLoadError::ConfigDirectory)?
+            .ok_or(CliError::ConfigDirectory)?
             .join("smbkup/config.toml"),
     };
     let file = fs::read_to_string(path)?;
     let config = toml::from_str::<Config>(&file)?;
     Ok(config)
-}
-
-#[derive(Error, Debug)]
-pub enum ConfigLoadError {
-    #[error("Unable to find the config directory for your OS, please provide the path to your config file with --config")]
-    ConfigDirectory,
-    #[error("Failed to read your config file")]
-    ReadingFile(#[from] io::Error),
-    #[error("Failed to deserialize your config file\n{0:#?}")]
-    Deserializing(#[from] toml::de::Error),
 }

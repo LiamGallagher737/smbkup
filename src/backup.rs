@@ -1,11 +1,13 @@
+use crate::CliError;
 use pavao::{SmbClient, SmbCredentials, SmbMode, SmbOpenOptions, SmbOptions};
 use std::{
-    io::{Cursor, Write}, path::PathBuf
+    io::{Cursor, Write},
+    path::PathBuf,
 };
 use zip::{write::FileOptions, ZipWriter};
 use zip_extensions::ZipWriterExtensions;
 
-pub fn run(name: String, config_path: Option<PathBuf>) {
+pub fn run(name: String, config_path: Option<PathBuf>) -> Result<(), CliError> {
     let config = match crate::config::load(config_path) {
         Ok(config) => config,
         Err(err) => {
@@ -15,16 +17,13 @@ pub fn run(name: String, config_path: Option<PathBuf>) {
     };
 
     let Some(backup) = config.backups.iter().find(|b| b.name == name) else {
-        println!("No backups exist in the config file named {name}");
-        return;
+        return Err(CliError::NoBackupExists { name });
     };
 
     let Some(server) = config.servers.iter().find(|s| s.name == backup.server) else {
-        println!(
-            "No servers exist in the config file named {}",
-            backup.server
-        );
-        return;
+        return Err(CliError::NoServerExists {
+            name: backup.name.clone(),
+        });
     };
 
     let password = rpassword::prompt_password("Samba Password: ").unwrap();
@@ -35,26 +34,23 @@ pub fn run(name: String, config_path: Option<PathBuf>) {
             .password(password)
             .username(&server.username),
         SmbOptions::default(),
-    )
-    .unwrap();
+    )?;
 
-    let _ = client.mkdir(&backup.destination.to_str().unwrap(), SmbMode::from(6));
+    let _ = client.mkdir(backup.destination.to_str().unwrap(), SmbMode::from(6));
 
     let date = chrono::Local::now().format(crate::DATE_FORMAT);
     let filename = format!("{name}.{date}.zip");
     let fullpath = backup.destination.join(filename);
     let dest = fullpath.to_str().unwrap();
-    let mut writer = client
-        .open_with(dest, SmbOpenOptions::default().create(true).write(true))
-        .unwrap();
+    let mut writer = client.open_with(dest, SmbOpenOptions::default().create(true).write(true))?;
 
     let mut buffer = Vec::new();
     let mut zip = ZipWriter::new(Cursor::new(&mut buffer));
-    zip.create_from_directory_with_options(&backup.source, FileOptions::default()).unwrap();
+    zip.create_from_directory_with_options(&backup.source, FileOptions::default())?;
     drop(zip);
 
-    writer.write(&buffer).unwrap();
+    writer.write_all(&buffer)?;
 
     println!("Successfully backed up {name}");
+    Ok(())
 }
-
