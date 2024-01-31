@@ -20,8 +20,8 @@ pub fn run(name: String, config_path: Option<PathBuf>) -> Result<(), CliError> {
         return Err(CliError::NoBackupExists { name });
     };
 
-    let Some(server) = config.servers.iter().find(|s| s.name == backup.server) else {
-        return Err(CliError::NoServerExists {
+    let Some(share) = config.shares.iter().find(|s| s.name == backup.share) else {
+        return Err(CliError::NoShareExists {
             name: backup.name.clone(),
         });
     };
@@ -29,10 +29,10 @@ pub fn run(name: String, config_path: Option<PathBuf>) -> Result<(), CliError> {
     let password = rpassword::prompt_password("Samba Password: ").unwrap();
     let client = SmbClient::new(
         SmbCredentials::default()
-            .server(&server.address)
-            .share(&server.share)
+            .server(&share.address)
+            .share(&share.share)
             .password(password)
-            .username(&server.username),
+            .username(&share.username),
         SmbOptions::default(),
     )?;
 

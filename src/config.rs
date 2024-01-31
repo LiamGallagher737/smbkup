@@ -5,20 +5,20 @@ use std::{fs, path::PathBuf};
 pub struct Config {
     #[serde(rename = "backup")]
     pub backups: Vec<Backup>,
-    #[serde(rename = "server")]
-    pub servers: Vec<Server>,
+    #[serde(rename = "share")]
+    pub shares: Vec<Share>,
 }
 
 #[derive(serde::Deserialize)]
 pub struct Backup {
     pub name: String,
-    pub server: String,
+    pub share: String,
     pub source: PathBuf,
     pub destination: PathBuf,
 }
 
 #[derive(serde::Deserialize)]
-pub struct Server {
+pub struct Share {
     pub name: String,
     pub address: String,
     pub username: String,
