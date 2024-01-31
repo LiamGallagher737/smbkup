@@ -1,20 +1,12 @@
-use crate::CliError;
+use crate::{Args, CliError};
 use pavao::{SmbClient, SmbCredentials, SmbMode, SmbOpenOptions, SmbOptions};
-use std::{
-    io::{Cursor, Write},
-    path::PathBuf,
-};
+use std::io::{Cursor, Write};
 use zip::{write::FileOptions, ZipWriter};
 use zip_extensions::ZipWriterExtensions;
 
-pub fn run(name: String, config_path: Option<PathBuf>) -> Result<(), CliError> {
-    let config = match crate::config::load(config_path) {
-        Ok(config) => config,
-        Err(err) => {
-            println!("{err}");
-            std::process::exit(1);
-        }
-    };
+pub fn run(args: Args) -> Result<(), CliError> {
+    let Args { name, config } = args;
+    let config = crate::config::load(config)?;
 
     let Some(backup) = config.backups.iter().find(|b| b.name == name) else {
         return Err(CliError::NoBackupExists { name });

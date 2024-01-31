@@ -13,26 +13,26 @@ const DATE_FORMAT: &str = "%Y-%m-%d-%H-%M-%S%z";
 enum Cli {
     /// Run a backup
     #[command(alias = "b")]
-    Backup {
-        /// The name of the backup you want to run
-        name: String,
-        /// The path you your config (optional)
-        #[arg(short, long)]
-        config: Option<PathBuf>,
-    },
-    #[command(alias = "r")]
+    Backup(Args),
     /// Restore a backup
-    Restore {
-        /// The name of the backup you want to restore
-        name: String,
-    },
+    #[command(alias = "r")]
+    Restore(Args),
+}
+
+#[derive(clap::Args)]
+struct Args {
+    /// The name of the backup you want to run
+    name: String,
+    /// The path you your config (optional)
+    #[arg(short, long)]
+    config: Option<PathBuf>,
 }
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
     let result = match cli {
-        Cli::Backup { name, config } => backup::run(name, config),
-        Cli::Restore { name } => restore::run(name),
+        Cli::Backup(args) => backup::run(args),
+        Cli::Restore(args) => restore::run(args),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,
@@ -53,7 +53,7 @@ enum CliError {
     DeserializingConfig(#[from] toml::de::Error),
     #[error("No backups exist in the config file named {name}")]
     NoBackupExists { name: String },
-    #[error("No share exist in the config file named {name}")]
+    #[error("No server exist in the config file named {name}")]
     NoShareExists { name: String },
     #[error("Something went wrong with smb: {0}")]
     Smb(#[from] pavao::SmbError),

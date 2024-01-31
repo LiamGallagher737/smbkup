@@ -1,5 +1,5 @@
-use crate::CliError;
+use crate::{Args, CliError};
 
-pub fn run(name: String) -> Result<(), CliError> {
+pub fn run(args: Args) -> Result<(), CliError> {
     Ok(())
 }
